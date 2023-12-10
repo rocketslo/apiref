@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+package rct.api;
+
+option go_package = "odin.com/odin/pkg/grpcapi";
+
+import "grpccommon/common.proto";
+
+message XEventDeploymentEnvironment {
+
+  // The type of environment where the deployment event occurred.
+  enum Category {
+    CATEGORY_UNSPECIFIED = 0;
+    CATEGORY_PRODUCTION = 1;
+    CATEGORY_STAGING = 2;
+    CATEGORY_TESTING = 3;
+    CATEGORY_DEVELOPMENT = 4;
+  }
+
+  // The ID of the environment where the deployment event occurred.
+  string environmentId = 1;
+
+  // The display name of the environment where the deployment event occurred.
+  string displayName = 2;
+
+  Category category = 3;
+}
+
+message XEventDeploymentPipeline {
+
+  // The ID of the deployment event pipeline.
+  string pipelineId = 1;
+
+  // The URL of the deployment event pipeline.
+  string url = 2;
+
+  // The name of the deployment event pipeline.
+  string displayName = 3;
+}
+
+message XEventDeploymentProperties {
+
+  // The sequence number for the deployment.
+  int64 sequenceNumber = 1;
+
+  State state = 2;
+
+  XEventDeploymentPipeline pipeline = 3;
+
+  XEventDeploymentEnvironment environment = 4;
+
+  // The time (UTC) this deployment was started at.
+  int64 startedAt = 5;
+
+  // The time (UTC) this deployment was completed at.
+  int64 completedAt = 6;
+
+  // The state of the deployment.
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    STATE_PENDING = 1;
+    STATE_IN_PROGRESS = 2;
+    STATE_SUCCESSFUL = 3;
+    STATE_CANCELED = 4;
+    STATE_FAILED = 5;
+    STATE_ROLLED_BACK = 6;
+  }
+}
+
+message XEventDeployment {
+
+  // The name of the deployment event.
+  string displayName = 1;
+
+  // The URL of the deployment event.
+  string url = 2;
+
+  // The description of the deployment event.
+  string description = 3;
+
+  // The last time (UTC) this event was updated.
+  int64 lastUpdated = 4;
+
+  XEventDeploymentProperties properties = 5;
+}
+
+message XEventBuildPipeline {
+
+  // The ID of the build event pipeline.
+  string pipelineId = 1;
+
+  // The URL to the build event pipeline.
+  string url = 2;
+
+  // The name of the build event pipeline.
+  string displayName = 3;
+}
+
+message XEventBuildProperties {
+
+  State state = 1;
+
+  XEventBuildPipeline pipeline = 2;
+
+  // The time (UTC) the build started.
+  int64 startedAt = 3;
+
+  // The time (UTC) the build completed.
+  int64 completedAt = 4;
+
+  // The state of the build.
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    STATE_IN_PROGRESS = 1;
+    STATE_SUCCESSFUL = 2;
+    STATE_CANCELED = 3;
+    STATE_FAILED = 4;
+    STATE_ERROR = 5;
+    STATE_TIMED_OUT = 6;
+    STATE_UNKNOWN = 7;
+  }
+}
+
+message XEventBuild {
+
+  // The name of the event.
+  string displayName = 1;
+
+  // The last time (UTC) this event was updated.
+  int64 lastUpdated = 2;
+
+  // The description of the event.
+  string description = 3;
+
+  // The URL of the event.
+  string url = 4;
+
+  XEventBuildProperties properties = 5;
+}
+
+message XEventCustomProp {
+  string label = 1;
+  string value = 2;
+}
+
+message XEventCustom {
+
+  // The name of the event.
+  string displayName = 1;
+
+  // The time (UTC) this event was last updated.
+  int64 lastUpdatedAt = 2;
+
+  // The description of the event.
+  string description = 3;
+
+  // The URL of the event.
+  string url = 4;
+
+  Sentiment sentiment = 5;
+
+  string status = 6;
+
+  repeated XEventCustomProp properties = 8;
+
+  // The sentiment for the custom event.
+  enum Sentiment {
+    SENTIMENT_UNSPECIFIED = 0;
+    SENTIMENT_NEUTRAL = 1;
+    SENTIMENT_INFO = 2;
+    SENTIMENT_WARNING = 3;
+    SENTIMENT_ERROR = 4;
+  }
+}
+
+message XEventInput {
+
+  XEventDeployment deployment = 1;
+
+  XEventBuild build = 2;
+
+  XEventCustom custom = 3;
+}
+
+message CreateEventRequest {
+
+  // The component short name.
+  string componentShortName = 1;
+
+  // The event body.
+  XEventInput event = 2;
+}
+
+message CreateEventResponse {}
+
+message CountAllEventsRequest {}
+
+message CountAllEventsResponse {
+  // The number of events.
+  int64 count = 1;
+}
+
+// The type of event.
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+  EVENT_TYPE_DEPLOYMENT = 1;
+  EVENT_TYPE_BUILD = 2;
+  EVENT_TYPE_CUSTOM = 3;
+}
+
+message CountEventsByTypeRequest {
+  // The type of event to count.
+  EventType type = 1;
+  // The component short name
+  string componentShortName = 2;
+}
+
+message CountEventsByTypeResponse {
+  // The type of event to count.
+  EventType type = 1;
+  // The number of events.
+  int64 count = 2;
+}
+
+message ListEventsByComponentRequest {
+  string componentShortName = 1;
+  /**
+  Limits:
+    - max 100 components in one page
+  */
+  rct.common.PageRequest pageRequest = 2;
+}
+
+message ListEventsByComponentResponse {
+
+  repeated XEventItem events = 1;
+
+  rct.common.PageResponse pageResponse = 2;
+}
+
+message XEventItem {
+  // The ID of the event.
+  string id = 1;
+  // The short name of the component (aka component ID).
+  string componentShortName = 2;
+  // The RAW event JSON.
+  string rawEvent = 3;
+}
+
+service XEventsService {
+  rpc Create(CreateEventRequest) returns (CreateEventResponse);
+  rpc CountAll(CountAllEventsRequest) returns (CountAllEventsResponse);
+  rpc CountByType(CountEventsByTypeRequest) returns (CountEventsByTypeResponse);
+  rpc ListByComponent(ListEventsByComponentRequest) returns (ListEventsByComponentResponse);
+}

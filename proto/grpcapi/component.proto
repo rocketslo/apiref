@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package rct.api;
+
+option go_package = "odin.com/odin/pkg/grpcapi";
+
+import "grpccommon/common.proto";
+import "grpcapi/catalog_item.proto";
+import "grpcapi/tag.proto";
+import "grpcapi/team.proto";
+import "grpcapi/link.proto";
+
+message ComponentMetadata {
+
+  /**
+  Mandatory human-readable component identificator. Is used in the links and APIs.
+  Limits:
+    - max length: 70
+    - characters: [a-z0-9] and "-"
+    - lowercase only
+  Examples:
+    - checkout-card, user-service
+    - https://rocketslo.com/components/checkout-card
+  */
+  string shortName = 1;
+
+  /**
+  Optional human-readable component identificator. If not provided then shortName is used instead.
+  Limits:
+    - max length: 120
+    - characters: [A-Za-z0-9], "-", " ", "_"
+    - case insensitive
+  Examples:
+    - "Checkout Card", "User Service"
+  */
+  string displayName = 2;
+
+  /**
+  Optional rich component description. Summary about what this component is and what it does.
+  Limits:
+    - max length: 2000
+  Examples:
+    - "User Service is core component of our application. It handles all user related data and operations."
+  */
+  rct.common.TextItem description = 3;
+
+  /**
+  Mandatory ID of the component type. Points to CatalogItemView.
+  */
+  string type = 4;
+
+  /**
+  Optional component avatar. If not specified then default built-in avatar will be used.
+  */
+  rct.common.Avatar avatar = 5;
+
+  /**
+  Mandatory owner team ID.
+  */
+  string ownerTeamId = 6;
+}
+
+message ComponentView {
+
+  /**
+  Mandatory internal component ID.
+  */
+  string id = 1;
+
+  ComponentMetadata metadata = 2;
+
+  /**
+  Mandatory component type.
+  */
+  CatalogItemView type = 3;
+
+  /**
+  List of tags.
+  Order is important and must be respected by the frontend.
+  */
+  repeated TagView tags = 5;
+
+  rct.common.CreateMeta createMeta = 8;
+
+  rct.common.UpdateMeta updateMeta = 9;
+
+  /**
+  Team that owns the component.
+  */
+  Team ownerTeam = 10;
+
+  repeated Link links = 11;
+}
+
+message CreateComponentRequest { ComponentMetadata meta = 1; }
+
+message CreateComponentResponse { ComponentView component = 1; }
+
+message ListComponentsOptions { bool includeTeamDetails = 1; }
+
+message ListComponentsByPageRequest {
+  /**
+  Limits:
+    - max 100 components in one page
+  */
+  rct.common.PageRequest pageRequest = 1;
+
+  ListComponentsOptions options = 2;
+}
+
+/**
+The minimal component object. Repeated fields (like users, tags, teams) are represented only with ids.
+*/
+message ComponentRef {
+
+  /**
+  Mandatory internal component ID. Example: "component:790AAD4A-9628-421A-BEC9-30005F6A9C58".
+  */
+  string id = 1;
+
+  ComponentMetadata metadata = 2;
+
+  /**
+  Mandatory component type.
+  */
+  CatalogItemView type = 3;
+
+  /**
+  List of tags.
+  Order is important and must be respected by the frontend.
+  */
+  repeated TagView tags = 5;
+
+  rct.common.CreateMeta createMeta = 8;
+
+  rct.common.UpdateMeta updateMeta = 9;
+}
+
+/**
+Size efficient representation of the batch of components.
+*/
+message ComponentBatch {
+  repeated ComponentRef components = 1;
+  repeated TeamRef teams = 2;
+}
+
+message ListComponentsByPageResponse {
+
+  ComponentBatch batch = 1;
+
+  rct.common.PageResponse pageResponse = 2;
+}
+
+message DeleteComponentRequest { string componentId = 1; }
+
+message DeleteComponentResponse {}
+
+service ComponentService {
+  rpc Create(CreateComponentRequest) returns (CreateComponentResponse) {}
+  rpc List(ListComponentsByPageRequest) returns (ListComponentsByPageResponse) {}
+  rpc Delete(DeleteComponentRequest) returns (DeleteComponentResponse) {}
+}

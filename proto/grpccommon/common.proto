@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package rct.common;
+
+option go_package = "odin.com/odin/pkg/grpccommon";
+
+message PageRequest {
+
+  /**
+  Mandatory number of items to return in the response. Must be limited on the backend.
+  */
+  int32 pageSize = 1;
+
+  /**
+  Optional opaque page token.
+  If empty - the first page is returned.
+  */
+  string pageToken = 2;
+}
+
+message PageResponse {
+
+  /**
+  Opaque page token to use in the subsequent request to get the next page of items.
+  If empty - there are no more items.
+  */
+  string nextPageToken = 1;
+
+  /**
+  Opaque page token to use in the subsequent request to get the previous page of items.
+  If empty - there are no more items.
+  */
+  string prevPageToken = 2;
+
+  /**
+  Page size as originally specified in the PageRequest.
+  */
+  int32 requestedPageSize = 3;
+
+  /**
+  Total count of items across all pages.
+  */
+  int32 totalCount = 4;
+
+  /**
+  Opaque page token to use to request this page of item. For example, to refetch the same page of data.
+  If empty - it is the first page.
+  */
+  string curPageToken = 5;
+}
+
+enum PrincipalType {
+  PRINCIPAL_TYPE_UNSPECIFIED = 0;
+  PRINCIPAL_TYPE_USER = 1;
+  PRINCIPAL_TYPE_BOT = 2;
+  PRINCIPAL_TYPE_SYSTEM = 3;
+  PRINCIPAL_TYPE_RCT_ADMIN = 4;
+}
+
+message Principal {
+  PrincipalType type = 1;
+  string id = 2;
+  string displayName = 3;
+}
+
+message CreateMeta {
+  Principal createdBy = 1;
+  int64 createdAt = 2;
+}
+
+message UpdateMeta {
+  Principal updatedBy = 1;
+  int64 updatedAt = 2;
+}
+
+enum AvatarType {
+  AVATAR_TYPE_UNSPECIFIED = 0;
+  AVATAR_TYPE_BUILD_IN = 1;
+  AVATAR_TYPE_CUSTOM = 2;
+}
+
+message Avatar {
+  AvatarType type = 1;
+  string uri = 2;
+}
+
+enum TextType {
+  TEXT_TYPE_UNSPECIFIED = 0;
+  TEXT_TYPE_PLAIN = 1;
+  TEXT_TYPE_MARKDOWN = 2;
+}
+
+message TextItem {
+  TextType type = 1;
+  string value = 2;
+}
+
+enum CatalogItemType {
+  CATALOG_ITEM_UNSPECIFIED = 0;
+  CATALOG_ITEM_SLO_TARGET_TYPE = 1;
+  CATALOG_ITEM_TIME_ZONE = 2;
+  CATALOG_ITEM_SLO_TYPE = 3;
+}

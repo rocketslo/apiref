@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package rct.api;
+
+option go_package = "odin.com/odin/pkg/grpcapi";
+
+import "grpccommon/common.proto";
+
+message CatalogItemMetadata {
+  string shortName = 1;
+  string displayName = 2;
+  int32 order = 3;
+  rct.common.TextItem description = 4;
+  rct.common.CatalogItemType type = 5;
+}
+message CatalogItemView {
+  string id = 1;
+  CatalogItemMetadata metadata = 2;
+}

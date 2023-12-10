@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package rct.api;
+
+option go_package = "odin.com/odin/pkg/grpcapi";
+
+import "grpccommon/common.proto";
+import "grpcapi/user.proto";
+
+message Team {
+
+  /**
+  Mandatory internal team identificator.
+  Example:
+    - team:07D4AE66-41E1-42FD-9BDC-9FB736A25302
+  */
+  string id = 1;
+
+  TeamMeta meta = 2;
+
+  /**
+  Team members.
+  */
+  repeated User members = 3;
+
+  rct.common.CreateMeta createMeta = 4;
+
+  rct.common.UpdateMeta updateMeta = 5;
+
+  repeated string ownerOfComponentIds = 6;
+}
+
+message TeamMeta {
+
+  /**
+  Mandatory human-readable team identificator. Is used in the links and APIs.
+  Limits:
+    - max length: 70
+    - characters: [a-z0-9] and "-"
+    - lowercase only
+  Examples:
+    - team-bravo
+    - https://rocketslo.com/components/team-bravo
+  */
+  string shortName = 1;
+
+  /**
+  Optional human-readable team identificator. If not provided then shortName is used instead.
+  Limits:
+    - max length: 120
+    - characters: [A-Za-z0-9], "-", " ", "_"
+    - case insensitive
+  Examples:
+    - "Team Bravo"
+  */
+  string displayName = 2;
+
+  /**
+  Optional rich team description. Summary about what this team is and what they do.
+  Limits:
+    - max length: 2000
+  */
+  rct.common.TextItem description = 3;
+
+  /**
+  Optional team avatar. If not provided, random built-in avatar is used.
+  */
+  rct.common.Avatar avatar = 4;
+}
+
+message CreateTeamRequest { TeamMeta meta = 1; }
+
+message CreateTeamResponse { Team team = 1; }
+
+message ListTeamsOptions {
+  bool includeUserDetails = 1; // if false then ListTeamsResponse.batch.usersByIds is empty
+}
+
+message ListTeamsRequest {
+
+  /**
+  Limits:
+    - max 100 teams in one page
+  */
+  rct.common.PageRequest pageRequest = 1;
+
+  ListTeamsOptions options = 2;
+}
+
+message ListTeamsResponse {
+
+  /**
+  Batch of teams.
+  */
+  TeamBatch batch = 1;
+
+  rct.common.PageResponse pageResponse = 2;
+}
+
+/**
+The minimal team object. Repeated fields (like users) are represented only with ids.
+*/
+message TeamRef {
+
+  /**
+  Mandatory internal team identificator.
+  Example:
+    - team:07D4AE66-41E1-42FD-9BDC-9FB736A25302
+  */
+  string id = 1;
+
+  TeamMeta meta = 2;
+
+  /**
+  IDs of team members.
+  Order is important and must be respected by the frontend. For example, current user might be always the first in the list.
+  */
+  repeated string memberUserIds = 3;
+
+  rct.common.CreateMeta createMeta = 4;
+
+  rct.common.UpdateMeta updateMeta = 5;
+}
+
+/**
+Size efficient representation of the batch of teams.
+*/
+message TeamBatch {
+
+  /**
+  List of teams.
+  */
+  repeated TeamRef teams = 1;
+
+  /**
+  Map containing all the users referenced by teams. Key = userId, value = User.
+  Empty if ListTeamsOptions.includeUserDetails is false.
+  */
+  map<string, User> usersByIds = 2;
+}
+
+message DeleteTeamRequest { string teamId = 1; }
+
+message DeleteTeamResponse { Team team = 1; }
+
+service TeamService {
+  rpc Create(CreateTeamRequest) returns (CreateTeamResponse) {}
+  rpc List(ListTeamsRequest) returns (ListTeamsResponse) {}
+  rpc Delete(DeleteTeamRequest) returns (DeleteTeamResponse) {}
+}

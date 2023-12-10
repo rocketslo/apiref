@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package rct.api;
+
+option go_package = "odin.com/odin/pkg/grpcapi";
+
+message GetTenantInfoRequest {}
+
+message GetTenantInfoResponse { string tenantId = 1; }
+
+service TenantService {
+  rpc GetInfo(GetTenantInfoRequest) returns (GetTenantInfoResponse) {}
+}

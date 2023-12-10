@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package rct.api;
+
+option go_package = "odin.com/odin/pkg/grpcapi";
+
+import "grpccommon/common.proto";
+
+message User {
+
+  // Mandatory.
+  string id = 1;
+
+  // Mandatory username.
+  // Limits:
+  //  - max length: 50
+  //  - lowercase only
+  //  - characters: [a-z0-9], "-", "_" and "."
+  string username = 2;
+
+  // Mandatory
+  string email = 3;
+
+  // Optional. If not provided username is used instead.
+  string fullName = 4;
+
+  // Mandatory. If not provided, random built-in avatar is assigned during user creation.
+  rct.common.Avatar avatar = 5;
+
+  // Remove? For all the users tenantId will be the same.
+  string tenantId = 6;
+
+  rct.common.CreateMeta createMeta = 8;
+}
+
+message ListUsersRequest { rct.common.PageRequest pageRequest = 1; }
+
+message ListUsersResponse {
+  repeated User users = 1;
+  rct.common.PageResponse pageResponse = 2;
+}
+
+service UserService {
+  rpc List(ListUsersRequest) returns (ListUsersResponse) {}
+}
