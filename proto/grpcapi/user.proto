@@ -41,5 +41,6 @@ message ListUsersResponse {
 }
 
 service UserService {
+  // List all users.
   rpc List(ListUsersRequest) returns (ListUsersResponse) {}
 }
